@@ -623,6 +623,9 @@ export function useSettingsRestore(onRestored?: () => void) {
       ...(settings.contextWindowMeterEnabled !== DEFAULT_UNIFIED_SETTINGS.contextWindowMeterEnabled
         ? ["Context window indicator"]
         : []),
+      ...(settings.composerStatuslineEnabled !== DEFAULT_UNIFIED_SETTINGS.composerStatuslineEnabled
+        ? ["Composer statusline"]
+        : []),
       ...(settings.responseStreamingMode !== DEFAULT_UNIFIED_SETTINGS.responseStreamingMode
         ? ["Response streaming"]
         : []),
@@ -693,6 +696,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       settings.proactivePanelsEnabled,
       settings.environmentIdentificationMode,
       settings.contextWindowMeterEnabled,
+      settings.composerStatuslineEnabled,
       settings.fontFamilyCode,
       settings.fontFamilyComposer,
       settings.fontFamilySans,
@@ -807,6 +811,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       sendShortcut: DEFAULT_UNIFIED_SETTINGS.sendShortcut,
       followUpBehavior: DEFAULT_UNIFIED_SETTINGS.followUpBehavior,
       contextWindowMeterEnabled: DEFAULT_UNIFIED_SETTINGS.contextWindowMeterEnabled,
+      composerStatuslineEnabled: DEFAULT_UNIFIED_SETTINGS.composerStatuslineEnabled,
       environmentIdentificationMode: DEFAULT_UNIFIED_SETTINGS.environmentIdentificationMode,
       glassOpacity: DEFAULT_UNIFIED_SETTINGS.glassOpacity,
       panelAnimationDurationMs: DEFAULT_UNIFIED_SETTINGS.panelAnimationDurationMs,
@@ -2788,6 +2793,33 @@ export function GeneralSettingsPanel() {
                 updateSettings({ composerCollapseOnScroll: Boolean(checked) })
               }
               aria-label="Collapse composer on scroll"
+            />
+          }
+        />
+
+        <SettingsRow
+          {...searchableSetting("composer-statusline")}
+          description="Show context window and usage-limit percentages on one line under the composer."
+          resetAction={
+            settings.composerStatuslineEnabled !==
+            DEFAULT_UNIFIED_SETTINGS.composerStatuslineEnabled ? (
+              <SettingResetButton
+                label="composer statusline"
+                onClick={() =>
+                  updateSettings({
+                    composerStatuslineEnabled: DEFAULT_UNIFIED_SETTINGS.composerStatuslineEnabled,
+                  })
+                }
+              />
+            ) : null
+          }
+          control={
+            <Switch
+              checked={settings.composerStatuslineEnabled}
+              onCheckedChange={(checked) =>
+                updateSettings({ composerStatuslineEnabled: Boolean(checked) })
+              }
+              aria-label="Composer statusline"
             />
           }
         />

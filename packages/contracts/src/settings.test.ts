@@ -663,6 +663,15 @@ describe("ClientSettings context window meter", () => {
   });
 });
 
+describe("ClientSettings composer statusline", () => {
+  it("defaults on and can be turned off", () => {
+    expect(decodeClientSettings({}).composerStatuslineEnabled).toBe(true);
+    expect(
+      decodeClientSettingsPatch({ composerStatuslineEnabled: false }).composerStatuslineEnabled,
+    ).toBe(false);
+  });
+});
+
 describe("ClientSettings send shortcut", () => {
   it("defaults to Enter and validates the supported choices", () => {
     expect(decodeClientSettings({}).sendShortcut).toBe("enter");

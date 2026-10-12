@@ -38,6 +38,7 @@ import type {
   ServerProvider,
   ThreadId,
   SnapShotSource,
+  UsageLimitSourceSnapshots,
 } from "@t3tools/contracts";
 import {
   AuthOrchestrationOperateScope,
@@ -58,7 +59,7 @@ import {
 import { serializeComposerFileLink } from "@t3tools/shared/composerTrigger";
 import { folderDropTarget, resolveDroppedFolderPath } from "./folderDrop";
 import { createModelSelection, normalizeModelSlug } from "@t3tools/shared/model";
-import { USAGE_LIMITS_COMMAND } from "@t3tools/shared/usageLimits";
+import { collectProviderUsageLimits, USAGE_LIMITS_COMMAND } from "@t3tools/shared/usageLimits";
 import {
   memo,
   type ComponentProps,
@@ -129,6 +130,7 @@ import {
   type PromptStashEntry,
 } from "../../promptStashStore";
 import { ComposerStashBadge } from "./ComposerStashBadge";
+import { ComposerStatusline } from "./ComposerStatusline";
 import { ComposerStashMenu } from "./ComposerStashMenu";
 import { useComposerMenuState } from "./useComposerMenuState";
 import { useComposerTriggerState } from "./useComposerTriggerState";
@@ -1602,6 +1604,7 @@ export interface ChatComposerProps {
   // Provider / model
   lockedProvider: ProviderDriverKind | null;
   providerStatuses: ServerProvider[];
+  usageLimitSources: UsageLimitSourceSnapshots;
   /** False until the environment's server config has arrived at least once. */
   providerCatalogKnown: boolean;
   activeProjectDefaultModelSelection: ModelSelection | null | undefined;
@@ -1752,6 +1755,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     interactionMode: requestedInteractionMode,
     lockedProvider,
     providerStatuses,
+    usageLimitSources,
     providerCatalogKnown,
     activeProjectDefaultModelSelection,
     activeThreadModelSelection,
@@ -2420,6 +2424,20 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       ? selectedProviderStatus.reportsContextWindow === true
       : null,
   });
+  const statuslineInstanceId = selectedProviderEntry?.instanceId;
+  const statuslineUsageLimits = useMemo(() => {
+    if (statuslineInstanceId === undefined) return null;
+    const report = collectProviderUsageLimits(
+      statuslineInstanceId,
+      providerStatuses,
+      usageLimitSources,
+      0,
+    );
+    const account =
+      report?.accounts.find((candidate) => candidate.instanceId === statuslineInstanceId) ??
+      report?.accounts[0];
+    return account?.limits ?? null;
+  }, [providerStatuses, statuslineInstanceId, usageLimitSources]);
 
   // ------------------------------------------------------------------
   // Composer-local state
@@ -7743,6 +7761,13 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
           </div>
         </ComposerSurface.Main>
       </div>
+      {settings.composerStatuslineEnabled && !isComposerCollapsedMobile ? (
+        <ComposerStatusline
+          environmentId={environmentId}
+          contextWindow={activeContextWindow}
+          usageLimits={statuslineUsageLimits}
+        />
+      ) : null}
     </form>
   );
 });
